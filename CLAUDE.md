@@ -11,9 +11,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Spec: `.scratch/ember-habit-tracker-spec.md` (source of truth: user stories, decisions, testing, out of scope).
 - Tickets: `.scratch/ember-habit-tracker/issues/NN-*.md`, each with acceptance checklist, `Blocked by` and `Status`.
 - `.scratch/` is gitignored, so spec and tickets are local only.
-- Implement tickets with `/implement <ticket path>`.
+- Implement tickets with `/implement <ticket path>` (skill in `.agents/skills/implement/`, symlinked from `.claude/skills/implement`).
 
-Package manager is **npm** (`package-lock.json`): use `npx`, not `bunx`, and add deps with `npx expo install`. Node **24.22.2** (`.nvmrc`; SDK 58 requires >=22.13). The macOS firewall must allow `~/.nvm/versions/node/v24.22.2/bin/node` incoming connections, or Expo Go on the phone fails with `Failed to download remote update`.
+Package manager is **npm** (`package-lock.json`): use `npx`, not `bunx`, and add deps with `npx expo install`. Node **24.22.2** (`.nvmrc`; SDK 58 requires >=22.13; shell default may still be older, so `nvm use`).
+
+Device testing: Expo Go on the user's Android phone only works over tunnel (`npm run start:tunnel`). LAN mode fails with `Failed to download remote update` even with the macOS firewall allowing `~/.nvm/versions/node/v24.22.2/bin/node`; root cause not pinned down, don't re-diagnose unless asked. Auto mode blocks Claude from starting ngrok, so the user starts the tunnel.
 
 ## Conventions
 
@@ -43,6 +45,7 @@ No test framework yet (Jest `jest-expo` + RNTL + CI come in ticket 02).
 - `src/app/_layout.tsx` is the root `Stack` (headers hidden). It wraps the app in Expo Router's `ThemeProvider` (light/dark) and holds the splash screen (`preventAutoHideAsync`, hidden on mount).
 - `src/app/(tabs)/_layout.tsx` renders `NativeTabs` (`expo-router/native-tabs`) with SF Symbol (`sf`) and Material Symbol (`md`) icons. Tabs: `index` (Today), `stats`, `settings`. A new tab needs a `NativeTabs.Trigger` whose `name` matches its route file.
 - Screens render `PlaceholderScreen` (`src/shared/ui/placeholder-screen.tsx`): `testID` + accessibility label, colors from `useTheme()`.
+- Starter template components, hooks, constants and `global.css` were deleted; only `src/app/` and `src/shared/` remain.
 - Still template defaults: scheme `wellnesshabitapp`, the blue splash/icon colors, and unused starter deps (`expo-web-browser`, `expo-image`, `@expo/ui`, `expo-glass-effect`, `expo-device`, `expo-symbols`).
 
 ### Target (per spec)
@@ -89,7 +92,7 @@ No test framework yet (Jest `jest-expo` + RNTL + CI come in ticket 02).
 
 | # | Ticket | Blocked by | Status |
 |---|---|---|---|
-| 01 | Reset template and native three-tab shell | – | **Done** on `feat/01-reset-template-native-tab-shell` (staged, awaiting commit/PR) |
+| 01 | Reset template and native three-tab shell | – | **Done**: committed (`fdcb0e6`) and pushed on `feat/01-reset-template-native-tab-shell`; PR to `main` not opened yet |
 | 02 | Test tooling and CI | 01 | ready |
 | 03 | NativeWind v4 and Ember theme tokens | 01 | ready |
 | 04 | EAS dev build, persisted store and theme preference | 03 | ready |
@@ -117,7 +120,7 @@ Ticket 01 notes:
 - removed web: `react-native-web`, `web` config, `asyncRoutes.web`, favicon, `web`/`reset-project` scripts.
 - added `eslint.config.js` (`eslint-config-expo`).
 - keep `react-dom` (SDK-pinned): `expo-router`, `@expo/metro-runtime` and `@expo/log-box` need it as a peer. Without it npm pulls a mismatched version.
-- verified with typecheck, lint, iOS + Android bundle export and `expo-doctor` (20/20). Not yet run on a device.
+- verified with typecheck, lint, iOS + Android bundle export and `expo-doctor` (20/20). Runs in Expo Go on Android via tunnel.
 
 Open items to confirm (from spec):
 - NativeWind v4 compatibility with SDK 58.
